@@ -1,6 +1,9 @@
 import requests
 from pprint import pprint
 
+# видоизменил начальную ссылку на эту https://api.openweathermap.org/data/2.5/weather?q=Paris&appid={API key}
+# достал её от сюда https://openweathermap.org/current
+
 # ссылка, которая идет до знака вопроса, потом идут параметры
 url = 'https://api.openweathermap.org/data/2.5/weather'
 
@@ -25,5 +28,3 @@ j_data = response.json()
 # Вывожу только данные о температуре воздуха
 print(f"В городе {j_data['name']} температура {round(j_data['main']['temp'] - 273.15)} градусов")
 
-# видоизменил начальную ссылку на эту https://api.openweathermap.org/data/2.5/weather?q=Paris&appid={API key}
-# достал её от сюда https://openweathermap.org/current
