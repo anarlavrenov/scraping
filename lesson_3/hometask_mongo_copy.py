@@ -3,19 +3,14 @@ from bs4 import BeautifulSoup as bs
 from pprint import pprint
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
-from hashlib import md5
 
 client = MongoClient('127.0.0.1', 27017)
 db = client['vacancies']
 jobs = db.jobs
 
-def hash_id(doc):
-    bytes_input = str(doc).encode('utf-8')
-
-    return md5(bytes_input).hexdigest()
-
 page = 1
 vacancy_list = []
+vacancy_id = 1
 base_url = 'https://djinni.co'
 user_input = input('Введите желаемую вакансию ')
 
@@ -25,10 +20,7 @@ while True:
     response = requests.get(url, headers=headers)
     dom = bs(response.text, 'html.parser')
     vacancies = dom.find_all('li', {'class': 'list-jobs__item'})
-    try:
-        page_block = dom.find('ul', {'class': 'pager'}).getText()
-    except AttributeError:
-        pass
+    page_block = dom.find('ul', {'class': 'pager'}).getText()
 
     for vacancy in vacancies:
         vacancy_data = {}
@@ -78,38 +70,29 @@ while True:
         vacancy_data['min_salary'] = min_salary
         vacancy_data['max_salary'] = max_salary
         vacancy_data['currency'] = currency
-
-        _id = hash_id(vacancy_data)
-        vacancy_data['_id'] = _id
+        vacancy_data['_id'] = vacancy_id
 
         vacancy_list.append(vacancy_data)
 
-        try:
-            jobs.insert_one(vacancy_data)
-        except DuplicateKeyError:
-            pass
-    try:
-        if page_block:
-            if 'наступна' in page_block:
-                    page = page + 1
-            else:
-                break
-    except NameError:
+        vacancy_id = vacancy_id + 1
+    if 'наступна' in page_block:
+        page = page + 1
+    else:
         break
 
 # pprint(vacancy_list)
 # pprint(len(vacancy_list))
 
-# jobs.delete_many({})
+
+#Загрузка данных в MongoDB, проверка на повторение документов
+try:
+    for i in vacancy_list:
+        jobs.insert_one(i)
+except DuplicateKeyError:
+    pass
 
 for doc in jobs.find({}):
     pprint(doc)
-
-total_count = jobs.count_documents({})
-print(total_count)
-
-
-
 
 # Функция с выводом введеной зарплатой
 # def search_salary(number):
