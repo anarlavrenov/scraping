@@ -13,7 +13,7 @@ client = MongoClient('127.0.0.1', 27017)
 # будет указывать на базу, которая в дальнейшем создастся (в ходе моей работы)
 db = client['users']
 
-# создаю указатели на коллекию persons в БД db
+# создаю указатели на коллекию persons и books в БД db
 persons = db.persons
 books = db.books
 

@@ -2,13 +2,18 @@ from lxml import html
 import requests
 from pymongo import MongoClient
 from pprint import pprint
-# Буду делать уникальный id, точно также, как делал с вакансиями
 from pymongo.errors import DuplicateKeyError
+from hashlib import md5
 
 # БД
 client = MongoClient('127.0.0.1', 27017)
 db = client['media']
 media = db.media
+
+def hash_id(doc):
+    bytes_input = str(doc).encode('utf-8')
+
+    return md5(bytes_input).hexdigest()
 
 # XPath
 url = 'https://hromadske.ua'
@@ -43,8 +48,14 @@ for sub_news_item in news_links:
         news_data['date'] = news_date[0]
         news_data['site'] = news_site[0]
         news_data['link'] = sub_news_item
+        _id = hash_id(news_data)
+        news_data['_id'] = _id
 
         news_list.append(news_data)
+        try:
+            media.insert_one(news_data)
+        except DuplicateKeyError:
+            pass
 
 
 # Перевызываю переменные ниже для корретной работы приложения
@@ -76,23 +87,21 @@ for main_news_item in main_news_link:
     main_news_data['name'] = main_news_name[0]
     main_news_data['date'] = main_news_date[0]
     main_news_data['site'] = main_news_site[0]
+    _id = hash_id(main_news_data)
+    main_news_data['_id'] = _id
 
     news_list.append(main_news_data)
+    try:
+        media.insert_one(main_news_data)
+    except DuplicateKeyError:
+        pass
 
-# Добавляю уникальный id для словарей с новостями
-news_id = 1
 
-for element in news_list:
-    element['_id'] = news_id
-    news_id = news_id + 1
-
-# Записываю данные в БД
-try:
-    for i in news_list:
-        media.insert_one(i)
-except DuplicateKeyError:
-    pass
 
 for doc in media.find({}):
     pprint(doc)
 
+total_count = media.count_documents({})
+print(total_count)
+
+# media.delete_many({})
