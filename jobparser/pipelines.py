@@ -37,12 +37,13 @@ class JobparserPipeline:
         # В определенные поля item записал результат обработки через process_salary, в которую передаю грязную зарплату
         if spider.name == 'djinnico':
             item['min_salary'], item['max_salary'], item['currency'] = self.process_salary_djinnico(item['salary'])
-            item['name'] = self.process_name(item['name'])
+            item['name'] = self.process_name_djinnico(item['name'])
             item['_id'] = self.hash_id(item)
         # и когда обработка произошла, можно удалить грязную зарплату из объекта вызовов items
             del item['salary']
         else:
             item['min_salary'], item['max_salary'], item['currency'] = self.process_salary_workua(item['salary'])
+            item['name'] = self.process_name_workua(item['name'])
             item['_id'] = self.hash_id(item)
             del item['salary']
 
@@ -92,12 +93,19 @@ class JobparserPipeline:
         return min_salary, max_salary, currency
 
     # Обработка имени вакансии для djinnico
-    def process_name(self, name: HtmlResponse):
+    def process_name_djinnico(self, name: HtmlResponse):
         if '\n' in name:
           name = name.replace('\n', '').strip()
         else:
             pass
         return name
+
+    # Обработка имени вакансии для workua
+    def process_name_workua(self, name: HtmlResponse):
+        name = ' '.join([str(item) for item in name])
+        return name
+
+
 
     # Хеширование документов
     def hash_id(self, item):

@@ -26,7 +26,7 @@ class WorkuaSpider(scrapy.Spider):
 
     def vacancy_parse(self, response: HtmlResponse):
         # Имя вакансии
-        name = response.xpath("//h1[@id = 'h1-name']//text()").get()
+        name = response.xpath("//h1[@id = 'h1-name']//text()").getall()
         # Зарплата (необработанная)
         salary = response.xpath("//b[@class='text-black']/text()").get()
         # Ссылка на вакансию
